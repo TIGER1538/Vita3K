@@ -92,7 +92,7 @@ COMMAND(new_frame) {
 // Client side function
 void finish(State &state, Context *context) {
     // Add NOP then wait for it
-    renderer::send_single_command(state, context, renderer::CommandOpcode::Nop, true, 1);
+    renderer::send_single_command(state, nullptr, renderer::CommandOpcode::Nop, true, 1);
 }
 
 int wait_for_status(State &state, int *status, int signal, bool wake_on_equal) {

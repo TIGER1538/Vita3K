@@ -19,6 +19,7 @@
 
 #include "../SceProcessmgr/SceProcessmgr.h"
 
+#include <mem/functions.h>
 #include <ngs/state.h>
 #include <ngs/system.h>
 #include <util/log.h>
@@ -246,7 +247,51 @@ EXPORT(int, sceNgsPatchRemoveRouting, Ptr<ngs::Patch> patch) {
         return RET_ERROR(SCE_NGS_ERROR_INVALID_ARG);
     }
 
-    if (!patch.get(emuenv.mem)->source->remove_patch(emuenv.mem, patch)) {
+    const Address patch_start = patch.address();
+    const Address patch_end = patch_start + static_cast<Address>(sizeof(ngs::Patch) - 1);
+    if (!is_valid_addr_range(emuenv.mem, patch_start, patch_end)) {
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_ARG);
+    }
+
+    ngs::Patch *patch_ptr = patch.get(emuenv.mem);
+    if (!patch_ptr || !patch_ptr->source) {
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_ARG);
+    }
+
+    const auto is_known_voice = [&](ngs::Voice *voice_ptr) {
+        for (auto *system : emuenv.ngs.systems) {
+            if (!system) {
+                continue;
+            }
+            for (auto *rack : system->racks) {
+                if (!rack) {
+                    continue;
+                }
+                for (const auto &voice : rack->voices) {
+                    if (voice.get(emuenv.mem) == voice_ptr) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    };
+
+    if (!is_known_voice(patch_ptr->source)) {
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_ARG);
+    }
+
+    const Ptr<ngs::Voice> source_ptr(patch_ptr->source, emuenv.mem);
+    const Address source_start = source_ptr.address();
+    if (source_start == 0) {
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_ARG);
+    }
+    const Address source_end = source_start + static_cast<Address>(sizeof(ngs::Voice) - 1);
+    if (!is_valid_addr_range(emuenv.mem, source_start, source_end)) {
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_ARG);
+    }
+
+    if (!source_ptr.get(emuenv.mem)->remove_patch(emuenv.mem, patch)) {
         return RET_ERROR(SCE_NGS_ERROR);
     }
 

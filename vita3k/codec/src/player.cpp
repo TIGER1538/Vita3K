@@ -28,7 +28,16 @@ extern "C" {
 #include <cassert>
 
 uint64_t PlayerState::get_framerate_microseconds() {
+    if (!format)
+        return 0;
+
+    if (video_stream_id < 0 || video_stream_id >= static_cast<int32_t>(format->nb_streams))
+        return 0;
+
     AVRational rational = format->streams[video_stream_id]->avg_frame_rate;
+    if (rational.num == 0)
+        return 0;
+
     return 1000000ull * rational.den / rational.num;
 }
 
@@ -53,6 +62,12 @@ void PlayerState::free_video() {
 
     if (format)
         avformat_close_input(&format);
+
+    video_context = nullptr;
+    audio_context = nullptr;
+    format = nullptr;
+    video_stream_id = -1;
+    audio_stream_id = -1;
 
     while (!video_packets.empty()) {
         AVPacket *packet = video_packets.front();
@@ -101,6 +116,12 @@ void PlayerState::switch_video(const std::string &path) {
 }
 
 bool PlayerState::next_packet(int32_t stream_id) {
+    if (!format)
+        return false;
+
+    if (stream_id < 0 || stream_id >= static_cast<int32_t>(format->nb_streams))
+        return false;
+
     std::queue<AVPacket *> &this_queue = stream_id == video_stream_id ? video_packets : audio_packets;
     std::queue<AVPacket *> &other_queue = stream_id != video_stream_id ? video_packets : audio_packets;
 
@@ -110,11 +131,21 @@ bool PlayerState::next_packet(int32_t stream_id) {
             this_queue.pop();
 
             if (stream_id == video_stream_id) {
+                if (!video_context) {
+                    av_packet_free(&this_packet);
+                    return false;
+                }
+
                 int err = avcodec_send_packet(video_context, this_packet);
                 assert(err == 0);
             }
 
             if (stream_id == audio_stream_id) {
+                if (!audio_context) {
+                    av_packet_free(&this_packet);
+                    return false;
+                }
+
                 int err = avcodec_send_packet(audio_context, this_packet);
                 assert(err == 0);
             }
@@ -142,6 +173,9 @@ std::vector<int16_t> PlayerState::receive_audio() {
     if (video_playing.empty())
         return {};
 
+    if (!audio_context || !format)
+        return {};
+
     AVFrame *frame = av_frame_alloc();
     std::vector<int16_t> data;
     while (true) {
@@ -152,8 +186,8 @@ std::vector<int16_t> PlayerState::receive_audio() {
 
         if (error != 0) {
             if (videos_queue.empty()) {
-                // Stop playing videos or
-                video_playing.clear();
+                // Stop playing videos.
+                free_video();
                 break;
             } else {
                 // Play the next video (if there is any).
@@ -195,6 +229,9 @@ std::vector<uint8_t> PlayerState::receive_video() {
     if (video_playing.empty())
         return {};
 
+    if (!video_context || !format)
+        return {};
+
     AVFrame *frame = av_frame_alloc();
     std::vector<uint8_t> data;
     while (true) {
@@ -205,8 +242,8 @@ std::vector<uint8_t> PlayerState::receive_video() {
 
         if (error != 0) {
             if (videos_queue.empty()) {
-                // Stop playing videos or
-                video_playing.clear();
+                // Stop playing videos.
+                free_video();
                 break;
             } else {
                 // Play the next video (if there is any).

@@ -390,11 +390,23 @@ EXPORT(bool, sceAvPlayerGetVideoData, SceUID player_handle, SceAvPlayerFrameInfo
         return false;
     }
 
+    if (player_info->player.video_playing.empty()) {
+        return false;
+    }
+
     Ptr<uint8_t> buffer;
 
     DecoderSize size = player_info->player.get_size();
 
+    if (size.width == 0 || size.height == 0) {
+        return false;
+    }
+
     uint64_t framerate = player_info->player.get_framerate_microseconds();
+
+    if (framerate == 0) {
+        return false;
+    }
 
     // needs new frame
     if (player_info->last_frame_time + framerate < current_time()) {
@@ -412,6 +424,9 @@ EXPORT(bool, sceAvPlayerGetVideoData, SceUID player_handle, SceAvPlayerFrameInfo
             buffer = get_buffer(player_info, MediaType::VIDEO, emuenv.mem, H264DecoderState::buffer_size(size), true);
 
             std::vector<uint8_t> data = player_info->player.receive_video();
+            if (data.empty()) {
+                return false;
+            }
             std::memcpy(buffer.get(emuenv.mem), data.data(), data.size());
         }
     } else {

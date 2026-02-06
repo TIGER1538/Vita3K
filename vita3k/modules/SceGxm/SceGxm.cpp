@@ -34,6 +34,7 @@
 #include <gxm/state.h>
 #include <gxm/types.h>
 #include <kernel/state.h>
+#include <mem/ptr.h>
 #include <mem/state.h>
 
 #include <io/state.h>
@@ -2486,8 +2487,23 @@ EXPORT(int, sceGxmFinish, SceGxmContext *context) {
     if (!context)
         return RET_ERROR(SCE_GXM_ERROR_INVALID_THREAD);
 
+    const Ptr<SceGxmContext> ctx_ptr(context, emuenv.mem);
+    const Address ctx_start = ctx_ptr.address();
+    if (ctx_start == 0) {
+        return RET_ERROR(SCE_GXM_ERROR_INVALID_POINTER);
+    }
+    const Address ctx_end = ctx_start + static_cast<Address>(sizeof(SceGxmContext) - 1);
+    if (!is_valid_addr_range(emuenv.mem, ctx_start, ctx_end)) {
+        return RET_ERROR(SCE_GXM_ERROR_INVALID_POINTER);
+    }
+
+    SceGxmContext *ctx = ctx_ptr.get(emuenv.mem);
+    if (!ctx || !ctx->renderer) {
+        return RET_ERROR(SCE_GXM_ERROR_INVALID_POINTER);
+    }
+
     // Wait on this context's rendering finish code.
-    renderer::finish(*emuenv.renderer, context->renderer.get());
+    renderer::finish(*emuenv.renderer, ctx->renderer.get());
 
     return 0;
 }

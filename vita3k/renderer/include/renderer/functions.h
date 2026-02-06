@@ -126,8 +126,13 @@ template <typename... Args>
 int send_single_command(State &state, Context *ctx, const CommandOpcode opcode, bool wait, Args... arguments) {
     // Make a temporary command list
     int status = CommandErrorCodePending; // Pending.
-    auto cmd = make_command(ctx ? ctx->alloc_func : generic_command_allocate, ctx ? ctx->free_func : generic_command_free,
-        opcode, wait ? &status : nullptr, arguments...);
+    CommandAllocFunc alloc_func = generic_command_allocate;
+    CommandFreeFunc free_func = generic_command_free;
+    if (ctx && ctx->alloc_func && ctx->free_func) {
+        alloc_func = ctx->alloc_func;
+        free_func = ctx->free_func;
+    }
+    auto cmd = make_command(alloc_func, free_func, opcode, wait ? &status : nullptr, arguments...);
 
     if (!cmd) {
         return CommandErrorArgumentsTooLarge;

@@ -212,7 +212,11 @@ Ptr<Patch> Voice::patch(const MemState &mem, const int32_t index, int32_t subind
 }
 
 bool Voice::remove_patch(const MemState &mem, const Ptr<Patch> patch) {
-    if (!patch || !voice_mutex) {
+    if (!patch || !patch.valid(mem) || !voice_mutex) {
+        return false;
+    }
+    Patch *patch_ptr = patch.get(mem);
+    if (!patch_ptr) {
         return false;
     }
     const std::lock_guard<std::mutex> guard(*voice_mutex);
@@ -227,7 +231,7 @@ bool Voice::remove_patch(const MemState &mem, const Ptr<Patch> patch) {
         return false;
 
     // Try to unroute. Free the destination index
-    patch.get(mem)->output_sub_index = -1;
+    patch_ptr->output_sub_index = -1;
 
     return true;
 }
