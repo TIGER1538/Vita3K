@@ -16,8 +16,10 @@ Vita3K is an experimental PlayStation Vita emulator for Windows, Linux, macOS an
 
 The emulator currently runs most homebrew programs and commercial games.
 
-- [Homebrew compatibility page](https://vita3k.org/compatibility-homebrew.html)
-- [Commercial compatibility page](https://vita3k.org/compatibility.html)
+* [Homebrew compatibility page](https://vita3k.org/compatibility-homebrew.html)
+* [Commercial compatibility page](https://vita3k.org/compatibility.html)
+
+#### This fork focuses on improving compatibility and performance for  the title with ID **PCSG00883**
 
 ## Gallery
 
@@ -51,7 +53,7 @@ You can download the latest builds from [here](https://github.com/Vita3K/Vita3K/
   * Requirements:
     * xdg-desktop-portal
 * [Android](https://github.com/Vita3K/Vita3K-Android/releases/)
-    * [Adreno drivers](https://github.com/K11MCH1/AdrenoToolsDrivers/releases/)
+  * [Adreno drivers](https://github.com/K11MCH1/AdrenoToolsDrivers/releases/)
 * Others
   * [Download Artifact](https://github.com/Vita3K/Vita3K/actions?query=event%3Apush+is%3Asuccess+branch%3Amaster)
   * [Old builds](https://github.com/Vita3K/Vita3K-builds/releases)
@@ -61,22 +63,28 @@ You can download the latest builds from [here](https://github.com/Vita3K/Vita3K/
 Please see [`building.md`](./building.md).
 
 ## Running
+
 Check our [quickstart guide](https://vita3k.org/quickstart) to make sure your computer meets the minimum requirements to run Vita3K.  
 Don't forget to have your graphics driver up to date and to install the [Visual C++ 2015-2022 Redistributable](https://aka.ms/vs/17/release/VC_redist.x64.exe) if you are a Windows user.  
 
 ## Bugs and issues
+
 The project is in an early stage, so please be mindful when opening new issues. Expect crashes, glitches, low compatibility and poor performance.
 
 ## Thanks
+
 Thanks go out to people who offered advice or otherwise made this project possible, such as Davee, korruptor, Rinnegatamante, ScHlAuChi, Simon Kilroy, TheFlow, xerpi, xyz, Yifan Lu and many others.
 
 ## Donations
+
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/vita3k)
 <br>
 Thank you to the supporters and to all those who support us on our [ko-fi](https://ko-fi.com/vita3K).
+
 * Among them, those who subscribed to the Nibble Tier and upper: **j0hnnybrav0, Mored4u, TacoOblivion, Undeadbob and uplush**
 
 ## Note
+
 The purpose of this emulator is not to enable illegal activity. You can dump games from a Vita by using [NoNpDrm](https://github.com/TheOfficialFloW/NoNpDrm) or [FAGDec](https://github.com/CelesteBlue-dev/PSVita-RE-tools/tree/master/FAGDec/build). You can get homebrew programs from [VitaDB](https://www.rinnegatamante.eu/vitadb/#/).
 
 PlayStation, PlayStation Vita and PlayStation Network are all registered trademarks of Sony Interactive Entertainment Inc. This emulator is not related to or endorsed by Sony, or derived from confidential materials belonging to Sony.
